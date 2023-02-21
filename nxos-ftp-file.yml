@@ -1,0 +1,68 @@
+---
+- name: Upload and verify firmware to Cisco switches
+  hosts: nexus9k1
+  gather_facts: false
+  vars:
+    trans_file: test.txt
+    trans_md5: d41d8cd98f00b204e9800998ecf8427e
+    ftp_server: 10.1.12.1
+    ftp_user: ftp
+    ftp_password: ftp
+    vrf: management
+    csv_file: csvfile.txt
+
+  tasks:
+  - name: gather md5 of file on switch - see if it already exists
+    nxos_command:
+      commands: "show file bootflash:///{{ trans_file }} md5sum"
+    register: file_exist
+
+#  - name: debug file_exist
+#    when: '"Empty" in file_exist.stdout[0]'
+#    ansible.builtin.debug:
+#      var: file_exist.stdout
+
+  - name: block to copy files over when it doesn't already exist
+    when: '"Empty" in file_exist.stdout[0]'
+    block:
+# copy ftp://ftp:ftp@10.1.12.1/test.txt bootflash:///test.txt vrf management
+#    - name: ftp image to switch
+#      cisco.nxos.nxos_file_copy:
+#        file_pull: true
+#        file_pull_protocol: ftp
+#        local_file: test.txt
+#        local_file_directory: bootflash:///
+#        remote_file: "/{{ trans_file }}"
+#        remote_scp_server: 10.1.12.1
+#        remote_scp_server_user: ftp
+#        remote_scp_server_password: ftp
+#        vrf: management
+
+    - name: "copy over new file {{ trans_file }}"
+      nxos_command:
+        commands: "copy ftp://{{ ftp_user }}:{{ ftp_password }}@{{ ftp_server }}/{{ trans_file }} bootflash:///{{ trans_file }} vrf {{ vrf }}"
+#      register: copy_output
+ 
+#    - name: debug copy_output
+#      ansible.builtin.debug:
+#        var: copy_output
+
+  - name: gather md5 of file on switch
+    nxos_command:
+      commands: "show file bootflash:///{{ trans_file }} md5sum"
+    register: md5_check
+
+#  - name: debug md5_check
+#    ansible.builtin.debug:
+#      var: md5_check.stdout
+
+
+  - name: create csv file compare md5 of original to switch - Matches
+    when: md5_check.stdout[0] == trans_md5
+    ansible.builtin.shell: 'echo "{{ inventory_hostname }} successfully coppied" >> {{ csv_file }}'
+
+  - name: create csv file compare md5 of original to switch - Doesn't Match
+    when: md5_check.stdout[0] != trans_md5
+    ansible.builtin.shell: 'echo "{{ inventory_hostname }} failed to copy correctly" >> {{ csv_file }}'
+      
+#  - name: create report 
