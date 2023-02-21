@@ -65,7 +65,7 @@
       name: ansible-report
     vars: 
       action_type: write
-      write_line: "{{ inventory_hostname }},Success
+      write_line: "{{ inventory_hostname }},Success"
     
 #  - name: create csv file compare md5 of original to switch - Matches
 #    when: md5_check.stdout[0] == trans_md5
@@ -77,7 +77,7 @@
       name: ansible-report
     vars: 
       action_type: write
-      write_line: "{{ inventory_hostname }},Failure
+      write_line: "{{ inventory_hostname }},Failure"
 
 #  - name: create csv file compare md5 of original to switch - Doesn't Match
 #    when: md5_check.stdout[0] != trans_md5
