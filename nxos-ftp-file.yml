@@ -25,21 +25,21 @@
 #    ansible.builtin.debug:
 #      var: file_exist.stdout
 
+############ BEGIN BLOCK #############
   - name: block to copy files over when it doesn't already exist
     when: '"Empty" in file_exist.stdout[0]'
     block:
-# copy ftp://ftp:ftp@10.1.12.1/test.txt bootflash:///test.txt vrf management
 #    - name: ftp image to switch
 #      cisco.nxos.nxos_file_copy:
 #        file_pull: true
 #        file_pull_protocol: ftp
-#        local_file: test.txt
+#        local_file: "{{ trans_file }}"
 #        local_file_directory: bootflash:///
 #        remote_file: "/{{ trans_file }}"
-#        remote_scp_server: 10.1.12.1
-#        remote_scp_server_user: ftp
-#        remote_scp_server_password: ftp
-#        vrf: management
+#        remote_scp_server: "{{ ftp_server }}"
+#        remote_scp_server_user: "{{ ftp_user }}"
+#        remote_scp_server_password: "{{ ftp_password }}"
+#        vrf: "{{ vrf }}"
 
     - name: "copy over new file {{ trans_file }}"
       nxos_command:
@@ -50,6 +50,7 @@
 #      ansible.builtin.debug:
 #        var: copy_output
 
+############ END BLOCK #############
   - name: gather md5 of file on switch
     nxos_command:
       commands: "show file bootflash:///{{ trans_file }} md5sum"
