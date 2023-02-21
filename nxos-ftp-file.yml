@@ -11,6 +11,9 @@
     vrf: management
     csv_file: csvfile.txt
 
+    headers: Hostname,Result
+    email_subject: Firmware Upload Status
+    
   tasks:
   - name: gather md5 of file on switch - see if it already exists
     nxos_command:
@@ -56,13 +59,33 @@
 #    ansible.builtin.debug:
 #      var: md5_check.stdout
 
-
   - name: create csv file compare md5 of original to switch - Matches
     when: md5_check.stdout[0] == trans_md5
-    ansible.builtin.shell: 'echo "{{ inventory_hostname }} successfully coppied" >> {{ csv_file }}'
+    ansible.builtin.include_role:
+      name: ansible-report
+    vars: 
+      action_type: write
+      write_line: "{{ inventory_hostname }},Success
+    
+#  - name: create csv file compare md5 of original to switch - Matches
+#    when: md5_check.stdout[0] == trans_md5
+#    ansible.builtin.shell: 'echo "{{ inventory_hostname }} successfully coppied" >> {{ csv_file }}'
 
-  - name: create csv file compare md5 of original to switch - Doesn't Match
+  - name: create csv file compare md5 of original to switch - Matches
     when: md5_check.stdout[0] != trans_md5
-    ansible.builtin.shell: 'echo "{{ inventory_hostname }} failed to copy correctly" >> {{ csv_file }}'
+    ansible.builtin.include_role:
+      name: ansible-report
+    vars: 
+      action_type: write
+      write_line: "{{ inventory_hostname }},Failure
+
+#  - name: create csv file compare md5 of original to switch - Doesn't Match
+#    when: md5_check.stdout[0] != trans_md5
+#    ansible.builtin.shell: 'echo "{{ inventory_hostname }} failed to copy correctly" >> {{ csv_file }}'
       
 #  - name: create report 
+  - name: send the compliance email
+    ansible.builtin.include_role:
+      name: ansible-report
+    vars: 
+      action_type: email
