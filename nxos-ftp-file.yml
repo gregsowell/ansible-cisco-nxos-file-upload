@@ -1,6 +1,6 @@
 ---
 - name: Upload and verify firmware to Cisco switches
-  hosts: nexus9k1
+  hosts: nexus9k1,nexus9k2
   gather_facts: false
   vars:
     trans_file: test.txt
